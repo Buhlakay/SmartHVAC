@@ -9,9 +9,24 @@ from flask import Flask, redirect
 from flask import render_template
 from flask import request
 from datetime import datetime
+# from get_calendar import *
 
-# Current Time of day in UTC
-timestamp_string = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+DECISION_HEAT_ON = "rgba(255,102,102,0.5)"
+DECISION_AC_ON = "rgba(102,102,255,0.5)"
+DECISION_TURN_OFF = "rgba(192,192,192,0.5)"
+
+
+LIST_SAMPLE_SIZE = 5
+outside_temp_list = [78, 76, 67, 58, 87]
+# hvac_decision_list = [0] * LIST_SAMPLE_SIZE
+hvac_decision_list = [DECISION_AC_ON, DECISION_TURN_OFF, DECISION_HEAT_ON, DECISION_HEAT_ON]
+timestamp_list = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
+
+# Something mod 60 to make a circular queue of values for last 60 sampled values
+counter = 0
+
+
 # Is user home according to schedule
 scheduledHome = False
 # Movement detected
@@ -87,12 +102,14 @@ def event_callback(event):
         insideTemp = event.data
 
 
-
 # Decide whether to turn heat or AC on
 def decide():
     desiredCool = 0
     desiredHeat = 0
     global decision
+    global counter
+    global hvac_decision_list
+    global timestamp_list
 
     # This needs work to decide exactly what to do and how long to do it
     if is_user_home():
@@ -104,10 +121,18 @@ def decide():
 
     if (outsideTemp > desiredCool) and (insideTemp > desiredCool):
         decision = 'Turn AC On'
+        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_AC_ON
     elif (outsideTemp < desiredHeat) and (insideTemp < desiredHeat):
         decision = 'Turn Heat On'
+        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_HEAT_ON
     else:
         decision = 'Turn unit off'
+        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_TURN_OFF
+  
+    timestamp_string = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp_list[counter % LIST_SAMPLE_SIZE] = timestamp_string
+
+    counter += 1
 
     my_data = {"status": decision}
     # Publish decision to broker
@@ -115,11 +140,14 @@ def decide():
     # Update this based on the Laptop information
     client.publishEvent("Laptop", "e4b3187eb170", "hvac", "json", my_data)
 
+
 # Default route for display of data
 @app.route('/')
-def temp_Controller():
-
-    return render_template('index.html', status=decision, timestamp=timestamp_string)
+def temp_controller():
+    labels = [1, 2, 3, 4, 5]
+    return render_template('index.html', status=decision, labels=timestamp_list, 
+            title='Temperatures over Time', hvac_decisions=hvac_decision_list,
+            outside_values=outside_temp_list)
 
 
 # Subscribe to motion and temp events

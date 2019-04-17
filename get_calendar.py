@@ -40,10 +40,10 @@ def get_event_list():
     # Call the Calendar API
     # now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
 
-    before = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 7, 0, 0).strftime('%s')))
+    before = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 14, 0, 0).strftime('%s')))
     before_timestamp = before.isoformat('T') + 'Z'
 
-    after = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 13, 23, 59).strftime('%s')))
+    after = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 20, 23, 59).strftime('%s')))
     after_timestamp = after.isoformat('T') + 'Z'
 
     print('Getting events for the upcoming week')
@@ -79,7 +79,7 @@ def check_user_event(event_date):
 
 
 def main():
-    date = datetime.datetime(2019, 4, 7, 12, 30)
+    date = datetime.datetime(2019, 4, 16, 19, 30)
     decision = check_user_event(date)
     print(decision)
 

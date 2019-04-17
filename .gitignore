@@ -1,3 +1,5 @@
 credentials.json
 token.pickle
 **/.idea
+*.log
+*.pyc
