@@ -3,3 +3,4 @@ token.pickle
 **/.idea
 *.log
 *.pyc
+*.xml
