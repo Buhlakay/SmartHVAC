@@ -11,22 +11,28 @@ from flask import request
 from datetime import datetime
 # from get_calendar import *
 import get_calendar as calendar
+import threading
 
 DECISION_HEAT_ON = "rgba(255,102,102,0.5)"
 DECISION_AC_ON = "rgba(102,102,255,0.5)"
 DECISION_TURN_OFF = "rgba(192,192,192,0.5)"
 
+running = False
 
-LIST_SAMPLE_SIZE = 5
-outside_temp_list = [78, 76, 67, 58, 87]
-# hvac_decision_list = [0] * LIST_SAMPLE_SIZE
-hvac_decision_list = [DECISION_AC_ON, DECISION_TURN_OFF, DECISION_HEAT_ON, DECISION_HEAT_ON]
-timestamp_list = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-    datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
+LIST_SAMPLE_SIZE = 60
+
+outside_temp_list = [0] * LIST_SAMPLE_SIZE
+# outside_temp_list = [78, 76, 67, 58, 87]
+
+hvac_decision_list = [0] * LIST_SAMPLE_SIZE
+# hvac_decision_list = [DECISION_AC_ON, DECISION_TURN_OFF, DECISION_HEAT_ON, DECISION_HEAT_ON]
+
+timestamp_list = [0] * LIST_SAMPLE_SIZE
+# timestamp_list = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+#   datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
 
 # Something mod 60 to make a circular queue of values for last 60 sampled values
 counter = 0
-
 
 # Current Time of day in UTC
 timestamp_string = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -40,15 +46,15 @@ outsideTemp = 0
 userHome = False
 # Away Heat setting
 awayHeat = 60
-# Home heat setting
-homeHeat = 68
 # Away Cool setting
 awayCool = 80
+# Home heat setting
+homeHeat = 68
 # Home Cool setting
 homeCool = 75
 
 # Decision on what to do with the HVAC system. 'Turn AC on', 'Turn Heat on'
-decision = ''
+decision = 'Turn unit off'
 
 
 app = Flask(__name__)
@@ -92,14 +98,18 @@ def is_user_home():
 
 
 # Callback for a sensor value change
-def event_callback(event):
+def event_callback(data):
     # New Data has been published
     payload = json.loads(data.payload)
     global movement
     global outsideTemp
 
     movement = payload["movement"]
+    # print(movement)
+
     outsideTemp = int(payload["temperature"])
+    outside_temp_list[counter % LIST_SAMPLE_SIZE] = outsideTemp
+    # print(outsideTemp)
 
 
 # Decide whether to turn heat or AC on
@@ -140,28 +150,69 @@ def decide():
     # Update this based on the Laptop information
     client.publishEvent("Laptop", "e4b3187eb170", "hvac", "json", my_data)
 
+# event = zipcode, key = zip
+@app.route('/', methods=['GET', 'POST'])
+def get_zip_code():
+    global awayHeat
+    global homeHeat
+    global awayCool
+    global homeCool
+    
+    if request.method == 'POST':
+        result = request.form['zip']
+        awayHeat = request.form['awayHeat'] if request.form['awayHeat'] != '' else awayHeat
+        homeHeat = request.form['homeHeat'] if request.form['homeHeat'] != '' else homeHeat
+        awayCool = request.form['awayCool'] if request.form['awayCool'] != '' else awayCool
+        homeCool = request.form['homeCool'] if request.form['homeCool'] != '' else homeCool
+
+        my_data = {'zip': str(result)}
+        client.publishEvent("Laptop", "7", "zipcode", "json", my_data)
+        
+        running = True
+        return redirect('/graph')
+    return render_template('index.html')
 
 # Default route for display of data
-@app.route('/')
+@app.route('/graph')
 def temp_controller():
-    labels = [1, 2, 3, 4, 5]
-    return render_template('index.html', status=decision, labels=timestamp_list, 
+    global timestamp_list
+    global hvac_decision_list
+    global outside_temp_list
+
+    if counter < LIST_SAMPLE_SIZE:
+        return render_template('graph.html', status=decision, labels=timestamp_list[0: counter], 
+            title='Temperatures over Time', hvac_decisions=hvac_decision_list[0: counter],
+            outside_values=outside_temp_list[0: counter], away_heat=awayHeat, home_heat=homeHeat,
+            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision)
+    else:
+        return render_template('graph.html', status=decision, labels=timestamp_list, 
             title='Temperatures over Time', hvac_decisions=hvac_decision_list,
-            outside_values=outside_temp_list)
+            outside_values=outside_temp_list, away_heat=awayHeat, home_heat=homeHeat,
+            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision)
 
 
 # Subscribe to motion and temp events
 client.subscribeToDeviceEvents(event="sensorData")
-client.deviceEventCallback = decide
+client.deviceEventCallback = event_callback
+
+event_list = calendar.get_event_list()
+
+
+def schedule_app_run():
+    while True:
+        if running:
+            # Check the user's schedule every 15 minutes
+            # Returns True if the user has something scheduled at this time
+            scheduledHome = calendar.check_user_event(event_list, datetime.now())
+            print(scheduledHome)
+            decide()
+            time.sleep(5)
+    
 
 if __name__ == "__main__":
+    # threading.Thread(target=signal_event).start()
+    threading.Thread(target=schedule_app_run).start()
     app.run(host='0.0.0.0', port=int(port))
-
-    event_list = calendar.get_event_list()
-
-    while True:
-        # Check the user's schedule every 15 minutes
-        # Returns True if the user has something scheduled at this time
-        scheduledHome = calendar.check_user_event(event_list, datetime.now())
-        decide()
-        time.sleep(900)
+    
+    
+    

@@ -1,80 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>{{ title }}</title>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js'></script>
-</head>
+<html>
+    <form method="POST">
+        Please put in a valid zip code: <input type="text" name="zip"/><br>
 
-<body>
-  <center>
-	<h1>{{ title }}</h1>
-
-	<div><canvas id="chart" width="600" height="400"></canvas></div>
-	<script>
-		Chart.defaults.global.responsive = true;
-		Chart.defaults.global.legend.display = false;
-			// datasets : [{
-			// 	fillColor: "rgba(151,203,205,1)",
-			// 	strokeColor: "rgba(151,203,205,1)",
-			// 	pointColor: "rgba(123,187,176,1)",
-			// 	pointStrokeColor: "#fff",
-			// 	pointHighlightFill: "#fff",
-			// 	pointHighlightStroke: "rgba(123,178,205,1)",
-			// 	bezierCurve : false,
-			// 	data : [
-			// 		{% for item in outside_values %}
-			// 			{{ item }},
-			// 		{% endfor %}],
-			// }]
-		// Chart.defaults.global.animationSteps = 50;
-		// Chart.defaults.global.tooltipYPadding = 16;
-		// Chart.defaults.global.tooltipCornerRadius = 0;
-		// Chart.defaults.global.tooltipTitleFontStyle = "normal";
-		// Chart.defaults.global.tooltipFillColor = "rgba(0,0,0,0.8";
-		// Chart.defaults.global.animationEasing = "easeOutBounce";
-		// Chart.defaults.global.responsive = true;
-		// Chart.defaults.global.scaleLineColor = "black";
-		// Chart.defaults.global.scaleFontSize = 16;
-		
-		
-		var sets = [];
-		var hvacList = JSON.parse('{{ hvac_decisions|tojson }}')
-		for (var i = 1; i <= hvacList.length; i++) {
-			var arr = new Array(hvacList.length + 1).fill(null);
-
-			var values = JSON.parse('{{outside_values}}');
-
-			arr[i - 1] = values[i - 1];
-			arr[i] = values[i];
-
-			sets.push({
-				backgroundColor: hvacList[i - 1],
-				strokeColor: hvacList[i - 1],
-				pointColor: hvacList[i - 1],
-				pointHoverBackgroundColor: hvacList[i - 1],
-				lineTension: 0.4, 
-				data: arr,
-			});
-		}
-		
-		var ctx = document.getElementById('chart').getContext('2d');
-		
-		var data = {
-			datasets: sets,
-			labels : [
-				{% for item in labels %}
-					"{{ item }}",
-				{% endfor %}],
-		};
-
-		var lineChart = new Chart(ctx, {
-			type: 'line',
-			data: data,
-		});
-
-	</script>
-  </center>
-</body>
+        Away Heat: <input type="text" name="awayHeat"/><br>
+        Away Cool: <input type="text" name="awayCool"/><br>
+        Home Heat: <input type="text" name="homeHeat"/><br>
+        Home Cool: <input type="text" name="homeCool"/><br>
+        <input type="submit"/>
+    </form>    
 </html>
-
