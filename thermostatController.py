@@ -1,5 +1,5 @@
 '''
-Controls the Thermostat based on outside temperature, inside temperature, user's schedule and detection of movement
+Controls the Thermostat based on outside temperature, user's schedule and detection of movement
 '''
 import time
 # IBM cloud connection
@@ -36,11 +36,8 @@ scheduledHome = False
 movement = False
 # Outside temperature
 outsideTemp = 0
-# Inside temperature
-insideTemp = 0
 # final decision if user is home
 userHome = False
-
 # Away Heat setting
 awayHeat = 60
 # Home heat setting
@@ -102,7 +99,8 @@ def event_callback(event):
     global outsideTemp
 
     movement = payload["movement"]
-    outsideTemp = payload["temperature"]
+    outsideTemp = int(payload["temperature"])
+
 
 # Decide whether to turn heat or AC on
 def decide():
@@ -118,7 +116,7 @@ def decide():
         desiredCool = homeCool
         desiredHeat = homeHeat
     else:
-        desiredHeat = awayCool
+        desiredCool = awayCool
         desiredHeat = awayHeat
 
     if (outsideTemp > desiredCool):
@@ -159,9 +157,11 @@ client.deviceEventCallback = decide
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(port))
 
+    event_list = calendar.get_event_list()
+
     while True:
         # Check the user's schedule every 15 minutes
         # Returns True if the user has something scheduled at this time
-        scheduledHome = calendar.check_user_event(datetime.now)
+        scheduledHome = calendar.check_user_event(event_list, datetime.now())
         decide()
         time.sleep(900)

@@ -69,8 +69,7 @@ def get_event_list():
     return event_list
 
 
-def check_user_event(event_date):
-    event_list = get_event_list()
+def check_user_event(event_list, event_date):
     for event in event_list:
         if event[0] <= event_date <= event[1]:
             return True
