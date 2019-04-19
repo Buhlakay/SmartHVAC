@@ -52,6 +52,8 @@ awayCool = 80
 homeHeat = 68
 # Home Cool setting
 homeCool = 75
+# ZIP code
+zipCode = 27607
 
 # Decision on what to do with the HVAC system. 'Turn AC on', 'Turn Heat on'
 decision = 'Turn unit off'
@@ -153,19 +155,20 @@ def decide():
 # event = zipcode, key = zip
 @app.route('/', methods=['GET', 'POST'])
 def get_zip_code():
+    global zipCode
     global awayHeat
     global homeHeat
     global awayCool
     global homeCool
-    
+
     if request.method == 'POST':
-        result = request.form['zip']
+        zipCode = request.form['zip'] if request.form['zip'] != '' else zipCode
         awayHeat = request.form['awayHeat'] if request.form['awayHeat'] != '' else awayHeat
         homeHeat = request.form['homeHeat'] if request.form['homeHeat'] != '' else homeHeat
         awayCool = request.form['awayCool'] if request.form['awayCool'] != '' else awayCool
         homeCool = request.form['homeCool'] if request.form['homeCool'] != '' else homeCool
 
-        my_data = {'zip': str(result)}
+        my_data = {'zip': str(zipCode)}
         client.publishEvent("Laptop", "7", "zipcode", "json", my_data)
         
         running = True
@@ -183,12 +186,14 @@ def temp_controller():
         return render_template('graph.html', status=decision, labels=timestamp_list[0: counter], 
             title='Temperatures over Time', hvac_decisions=hvac_decision_list[0: counter],
             outside_values=outside_temp_list[0: counter], away_heat=awayHeat, home_heat=homeHeat,
-            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision)
+            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
+            zip_code=zipCode)
     else:
         return render_template('graph.html', status=decision, labels=timestamp_list, 
             title='Temperatures over Time', hvac_decisions=hvac_decision_list,
             outside_values=outside_temp_list, away_heat=awayHeat, home_heat=homeHeat,
-            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision)
+            away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
+            zip_code=zipCode)
 
 
 # Subscribe to motion and temp events
