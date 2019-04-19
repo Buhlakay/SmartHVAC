@@ -10,6 +10,7 @@ from flask import render_template
 from flask import request
 from datetime import datetime
 # from get_calendar import *
+import get_calendar as calendar
 
 DECISION_HEAT_ON = "rgba(255,102,102,0.5)"
 DECISION_AC_ON = "rgba(102,102,255,0.5)"
@@ -27,6 +28,8 @@ timestamp_list = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().s
 counter = 0
 
 
+# Current Time of day in UTC
+timestamp_string = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 # Is user home according to schedule
 scheduledHome = False
 # Movement detected
@@ -93,14 +96,13 @@ def is_user_home():
 
 # Callback for a sensor value change
 def event_callback(event):
-    # Determine if event
-    if event.eventId == 'motion':
-        global movement
-        movement = event.data
-    if event.eventId == 'temp':
-        global insideTemp
-        insideTemp = event.data
+    # New Data has been published
+    payload = json.loads(data.payload)
+    global movement
+    global outsideTemp
 
+    movement = payload["movement"]
+    outsideTemp = payload["temperature"]
 
 # Decide whether to turn heat or AC on
 def decide():
@@ -119,10 +121,10 @@ def decide():
         desiredHeat = awayCool
         desiredHeat = awayHeat
 
-    if (outsideTemp > desiredCool) and (insideTemp > desiredCool):
+    if (outsideTemp > desiredCool):
         decision = 'Turn AC On'
         hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_AC_ON
-    elif (outsideTemp < desiredHeat) and (insideTemp < desiredHeat):
+    elif (outsideTemp < desiredHeat):
         decision = 'Turn Heat On'
         hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_HEAT_ON
     else:
@@ -151,10 +153,15 @@ def temp_controller():
 
 
 # Subscribe to motion and temp events
-client.subscribeToDeviceEvents(event="motion")
+client.subscribeToDeviceEvents(event="sensorData")
 client.deviceEventCallback = decide
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(port))
 
-
+    while True:
+        # Check the user's schedule every 15 minutes
+        # Returns True if the user has something scheduled at this time
+        scheduledHome = calendar.check_user_event(datetime.now)
+        decide()
+        time.sleep(900)
