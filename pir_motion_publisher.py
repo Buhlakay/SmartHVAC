@@ -16,7 +16,7 @@ lastTemp
 
 def set_location(data):
     global location
-    payload = json.loads(data.payload)
+    payload = json.loads(data.payload.encode("utf-8"))
     print(payload)
     zip = payload['zip']
     location = search.by_zipcode(zip);
