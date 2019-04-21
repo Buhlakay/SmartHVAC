@@ -12,6 +12,7 @@ from datetime import datetime
 # from get_calendar import *
 import get_calendar as calendar
 import threading
+from collections import deque
 
 DECISION_HEAT_ON = "rgba(255,102,102,0.5)"
 DECISION_AC_ON = "rgba(102,102,255,0.5)"
@@ -21,13 +22,13 @@ running = False
 
 LIST_SAMPLE_SIZE = 60
 
-outside_temp_list = [0] * LIST_SAMPLE_SIZE
+outside_temp_list = deque([0] * LIST_SAMPLE_SIZE)
 # outside_temp_list = [78, 76, 67, 58, 87]
 
-hvac_decision_list = [0] * LIST_SAMPLE_SIZE
+hvac_decision_list = deque([0] * LIST_SAMPLE_SIZE)
 # hvac_decision_list = [DECISION_AC_ON, DECISION_TURN_OFF, DECISION_HEAT_ON, DECISION_HEAT_ON]
 
-timestamp_list = [0] * LIST_SAMPLE_SIZE
+timestamp_list = deque([0] * LIST_SAMPLE_SIZE)
 # timestamp_list = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
 #   datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
 
@@ -83,6 +84,11 @@ try:
 except ibmiotf.ConnectionException as e:
     print(e)
 
+# Uses dequedata structure for O(1) push and pop
+def updateDeque(deque, element):
+    deque.popleft()
+    deque.append(element)
+
 
 # Determines if the user is home based on data from motion sensor and schedule
 def is_user_home():
@@ -110,7 +116,7 @@ def event_callback(data):
     # print(movement)
 
     outsideTemp = int(payload["temperature"])
-    outside_temp_list[counter % LIST_SAMPLE_SIZE] = outsideTemp
+    updateDeque(outside_temp_list, outsideTemp)
     # print(outsideTemp)
 
 
@@ -133,16 +139,16 @@ def decide():
 
     if (outsideTemp > desiredCool):
         decision = 'Turn AC On'
-        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_AC_ON
+        updateDeque(hvac_decision_list, DECISION_AC_ON)
     elif (outsideTemp < desiredHeat):
         decision = 'Turn Heat On'
-        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_HEAT_ON
+        updateDeque(hvac_decision_list, DECISION_HEAT_ON)
     else:
         decision = 'Turn unit off'
-        hvac_decision_list[counter % LIST_SAMPLE_SIZE] = DECISION_TURN_OFF
+        updateDeque(hvac_decision_list, DECISION_TURN_OFF)
   
     timestamp_string = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    timestamp_list[counter % LIST_SAMPLE_SIZE] = timestamp_string
+    updateDeque(timestamp_list, timestamp_string)
 
     counter += 1
 
@@ -183,15 +189,15 @@ def temp_controller():
     global outside_temp_list
 
     if counter < LIST_SAMPLE_SIZE:
-        return render_template('graph.html', status=decision, labels=timestamp_list[0: counter], 
-            title='Temperatures over Time', hvac_decisions=hvac_decision_list[0: counter],
-            outside_values=outside_temp_list[0: counter], away_heat=awayHeat, home_heat=homeHeat,
+        return render_template('graph.html', status=decision, labels=list(timestamp_list)[0: counter], 
+            title='Temperatures over Time', hvac_decisions=list(hvac_decision_list)[0: counter],
+            outside_values=list(outside_temp_list)[0: counter], away_heat=awayHeat, home_heat=homeHeat,
             away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
             zip_code=zipCode)
     else:
-        return render_template('graph.html', status=decision, labels=timestamp_list, 
-            title='Temperatures over Time', hvac_decisions=hvac_decision_list,
-            outside_values=outside_temp_list, away_heat=awayHeat, home_heat=homeHeat,
+        return render_template('graph.html', status=decision, labels=list(timestamp_list), 
+            title='Temperatures over Time', hvac_decisions=list(hvac_decision_list),
+            outside_values=list(outside_temp_list), away_heat=awayHeat, home_heat=homeHeat,
             away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
             zip_code=zipCode)
 
