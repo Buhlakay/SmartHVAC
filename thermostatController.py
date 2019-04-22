@@ -168,6 +168,7 @@ def show_writeup():
 @app.route('/zip', methods=['GET', 'POST'])
 def get_zip_code():
     global zipCode
+    global running
     global awayHeat
     global homeHeat
     global awayCool
