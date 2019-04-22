@@ -3,14 +3,15 @@
 <body style="font-family:verdana;">
 
     <h1 align="center">Team I Course Project: Smart Home HVAC System</h1>
+    <p align="center">Team Members: Robert Willenborg, Shreyas Kuloor, Blake Wilson, and Scott Anthony</p>
     <div class="topnav" align="center">
-        <a class="active" href="#home">Home</a>
-        <a href="#intro">Introduction</a>
-        <a href="#desc">Project Description</a>
-        <a href="#software">Software</a>
-        <a href="#hardware">Hardware</a>
+        <a class="active" href="#home"><b>Home</b></a>
+        <a href="#intro"><b>Introduction</b></a>
+        <a href="#desc"><b>Project Description</b></a>
+        <a href="#goals"><b>Goals</b></a>
+        <a href="#process"><b>Processes</b></a>
     </div>
-    <h2 id="intro">Introduction</h2>
+    <h2 id="intro"><u>Introduction</u></h2>
         <p>
             &emsp;In recent years many people are buying HVAC units to help with heating and cooling their home.
             With home automation becoming more and more popular and systems like the Nest gaining popularity,
@@ -20,10 +21,10 @@
             a consistent schedule when people's schedule's are constantly changing.
             <br>
         </p>
-    <h2 id="desc">Project Description</h2>
+    <h2 id="desc"><u>Project Description</u></h2>
         <p>
-            &emsp;We wanted to help combat rising temperatures and electrical costs with our system. Our system,
-            /INSERT NAME HERE/, is a smart HVAC system that you will be able to sync to your own schedule 
+            &emsp;We wanted to help combat rising temperatures and electrical costs with our system. Our system 
+            is a smart HVAC system that you will be able to sync to your own schedule 
             so that it will automatically heat and cool your home to the optimal temperature throughout 
             the day in depending on how the outside temperature changes throughout the day. Our system will 
             adapt to the temperature in order to heat and cool your home accordingly and save you money.
@@ -32,10 +33,45 @@
             system will automatically change back to your own preferred temperature whenever it detects
             movement at home.
         </p>
-    <h2 id="software">Software Development</h2>
-        <p>IMAGE LIBRARY HERE<br></p>
-    <h2 id="hardware">Hardware Development</h2>
-        <p>IMAGE LIBRARY HERE<br></p>
-
+    <h2 id="goals"><u>Goals</u></h2>
+        <p>
+            There were a few goals we knew we had to accomplish:
+            <ul>
+                <li>Develop smart HVAC system that will automatically adjust heating/air conditioning settings</li>
+                <li>Make decisions based on outside temperature and presence</li>
+                <li>Ensure that the system can be constantly running with little to no downtime</li>
+                <li>Allow users to customize temperature settings to fit their personal needs</li>
+                <li>Allow users to see that the system is working and what it has been doing over time</li>
+            </ul>
+        </p>
+    <h2 id="process"><u>Processes</u></h2>
+        <h4>IBM Bluemix Cloud</h4>
+            <p>
+                &emsp;Used to run script that gets values from the raspberry pi. Creates and displays graph 
+                that shows the temperature within the house throughout the day. Graph shows when the heating 
+                or cooling has been turned on
+            </p>
+        <h4>Software Development</h4>
+            <p>
+                We made use of a few APIs to accomplish our goals:
+                <ul>
+                    <li>Dark Sky</li>
+                    <li>Google Calendar</li>
+                </ul>
+                &emsp;We used Dark Sky for all of our weather data. We collect data from Dark Sky based on a set 
+                zip code and then sample this throughout the day in order to change the temperature in the 
+                household.<br>
+                &emsp;We used Google Calendar to collect all of the schedule information. The user can upload their 
+                daily schedule to Google Calendar and our system will know when the user will or won't be home 
+                so that it can heat or cool the home in order to best match with the outside temperature.
+            </p>
+        <h4>Hardware Development</h4>
+            <p> 
+                &emsp;We used a Raspberry Pi for out main hardware controller. The Pi had a few functions for this 
+                project. First it is a publisher for the MQTT broker and handles the motion sensor logic. 
+                The Pi will run code to process the motion sensor values and then publish them to the MQTT 
+                server to be read. We also decided to have the Pi retrieve and process the weather values from 
+                the Dark Sky api.
+            </p>
 </body>
 </html>
