@@ -10,6 +10,7 @@
         <a href="#desc"><b>Project Description</b></a>
         <a href="#goals"><b>Goals</b></a>
         <a href="#process"><b>Processes</b></a>
+        <a href="#future"><b>Looking Ahead</b></a>
     </div>
     <h2 id="intro"><u>Introduction</u></h2>
         <p>
@@ -50,21 +51,16 @@
             <p>
                 &emsp;Used to run script that gets values from the raspberry pi. Creates and displays graph 
                 that shows the temperature within the house throughout the day. Graph shows when the heating 
-                or cooling has been turned on
+                or cooling has been turned on. It makes decisions based on the sensor values and temperature
+                about whether heating/cooling should be turned on. Also, serves as the MQTT broker.
             </p>
-        <h4>Raspberry Pi</h4>
+        <h4>Web App</h4>
             <p>
-                &emsp;The Raspberry Pi is responsible for retrieving values from the PIR motion sensor and retrieving current
-                temperature from the Dark Sky API. It publishes to a sensorValues topic/event on the IBM Cloud broker so that
-                the other components of the smart HVAC system can retrieve them and make decisions based on the current values.
-                In practice, we would expect that the Raspberry Pi is placed somewhere so that the motion sensor would be able
-                to "see" the entire room, so that it can accurately notify the system whether someone is present.
-                
-                One of the limitations of our motion sensor is that it only detects current motion, not presence. This means
-                that if a person is sitting still in a room, the sensor would report that there is no motion. We overcame this 
-                limitation through the use of a time threshold. The code in the Raspberry Pi will count for 60 seconds (this time
-                threshold can be changed) after motion has been detected and if no motion is detected within that 60 seconds, we assume
-                that the room is empty.
+                &emsp;The web app is a simple display (run from a Python Flask script) that showcases the graphs
+                as well as current information (temperature, presence, heating/cooling limits). It also serves as a
+                form in which the user can provide input values based on their temperature preferences. The user enters
+                their zip code (to determine where to get the temperature values from) and the temperatures at which turn the
+                heating and cooling on both when they are home and away.
             </p>
         <h4>Software Development</h4>
             <p>
@@ -87,6 +83,34 @@
                 The Pi will run code to process the motion sensor values and then publish them to the MQTT 
                 server to be read. We also decided to have the Pi retrieve and process the weather values from 
                 the Dark Sky api.
+                
+                &emsp;The Raspberry Pi is responsible for retrieving values from the PIR motion sensor and retrieving current
+                temperature from the Dark Sky API. It publishes to a sensorValues topic/event on the IBM Cloud broker so that
+                the other components of the smart HVAC system can retrieve them and make decisions based on the current values.
+                In practice, we would expect that the Raspberry Pi is placed somewhere so that the motion sensor would be able
+                to "see" the entire room, so that it can accurately notify the system whether someone is present.
+                
+                &emsp;One of the limitations of our motion sensor is that it only detects current motion, not presence. This means
+                that if a person is sitting still in a room, the sensor would report that there is no motion. We overcame this 
+                limitation through the use of a time threshold. The code in the Raspberry Pi will count for 60 seconds (this time
+                threshold can be changed) after motion has been detected and if no motion is detected within that 60 seconds, we assume
+                that the room is empty.
+            </p>
+    <h2 id="future"><u>Looking Ahead</u></h2>
+            <p>
+                &emsp;There are a few things we would have liked to add to the project eventually were we to continue with this project
+                or if we had more time. One of them is a "power savings graph". Essentially, using values of power consumption of 
+                heating and cooling, we could graph the power consumption of the system and inform the user on how to potentially
+                save money and power. This would require information on power pricing, which depends on a variety of factors, 
+                so we are unsure as to how difficult it would actually be to implement this.
+                
+                &emsp;Another feature could be isolated heating/cooling for rooms. This would be our system on a larger scale, where the
+                system does the same decision making for multiple rooms in the same household. While this would require a more advanced
+                HVAC system in general, it could be very useful to control the temperatures of individual rooms based on presence.
+                
+                &emsp;Lastly, a new feature is a mobile app for the HVAC system. This would allow the HVAC system to push notifications
+                to the user based on the status of the system as well as allow the user to more conveniently control their thermostat
+                from a remote location.
             </p>
             
     <center><h2><a href="/zip">GO TO PROJECT HERE</a> </h2></center>
