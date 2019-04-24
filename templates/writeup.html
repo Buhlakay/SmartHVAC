@@ -52,6 +52,20 @@
                 that shows the temperature within the house throughout the day. Graph shows when the heating 
                 or cooling has been turned on
             </p>
+        <h4>Raspberry Pi</h4>
+            <p>
+                &emsp;The Raspberry Pi is responsible for retrieving values from the PIR motion sensor and retrieving current
+                temperature from the Dark Sky API. It publishes to a sensorValues topic/event on the IBM Cloud broker so that
+                the other components of the smart HVAC system can retrieve them and make decisions based on the current values.
+                In practice, we would expect that the Raspberry Pi is placed somewhere so that the motion sensor would be able
+                to "see" the entire room, so that it can accurately notify the system whether someone is present.
+                
+                One of the limitations of our motion sensor is that it only detects current motion, not presence. This means
+                that if a person is sitting still in a room, the sensor would report that there is no motion. We overcame this 
+                limitation through the use of a time threshold. The code in the Raspberry Pi will count for 60 seconds (this time
+                threshold can be changed) after motion has been detected and if no motion is detected within that 60 seconds, we assume
+                that the room is empty.
+            </p>
         <h4>Software Development</h4>
             <p>
                 We made use of a few APIs to accomplish our goals:
