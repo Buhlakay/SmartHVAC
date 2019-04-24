@@ -2,24 +2,29 @@ import RPi.GPIO as GPIO
 import time
 import ibmiotf.application
 import requests
+import json
 from uszipcode import SearchEngine
 
 PIRPin = 17
 apikey = "c26a9e4c2dd93646a896e2620f2855f0"
 search = SearchEngine(simple_zipcode=True)
 URL = "https://api.darksky.net/forecast/" + apikey + "/"
-location = search.by_zipcode("27511");
+zip = "27511"
+location = search.by_zipcode(zip)
 count = 0
 motionCount = 0
 moved = False
-lastTemp
+lastTemp = 0
 
 def set_location(data):
     global location
-    payload = json.loads(data.payload.encode("utf-8"))
+    global zip
+    bytes = data.payload
+    print(bytes)
+    payload = json.loads(bytes.decode("utf-8"))
     print(payload)
     zip = payload['zip']
-    location = search.by_zipcode(zip);
+    print(zip)
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -50,10 +55,12 @@ data = r.json()
 lastTemp = data['currently']['temperature']
 print(lastTemp)
 while 1:
+    location = search.by_zipcode(zip)
     latitude = location.to_dict()['lat']
     longitude = location.to_dict()['lng']
-    if count == 60:
+    if count == 30:
         r = requests.get(URL + str(latitude) + "," + str(longitude))
+        print("api call")
         data = r.json()
         lastTemp = data['currently']['temperature']
         print(lastTemp)
@@ -64,7 +71,7 @@ while 1:
         moved = True
         motionCount = 0
     else:
-        print("no motion")
+        print("no motion. time since motion: " + str(motionCount))
         motionCount += 1
         if motionCount == 60:
             moved = False
