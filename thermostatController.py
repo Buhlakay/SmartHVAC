@@ -201,13 +201,13 @@ def temp_controller():
             title='Temperatures over Time', hvac_decisions=hvac_decision_list[0: hvac_counter],
             outside_values=outside_temp_list[0: hvac_counter], away_heat=awayHeat, home_heat=homeHeat,
             away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
-            zip_code=zipCode)
+            zip_code=zipCode, currently_present=userHome)
     else:
         return render_template('graph.html', status=decision, labels=timestamp_list, 
             title='Temperatures over Time', hvac_decisions=hvac_decision_list,
             outside_values=outside_temp_list, away_heat=awayHeat, home_heat=homeHeat,
             away_cool=awayCool, home_cool=homeCool, outside_temp=outsideTemp, current_decision=decision,
-            zip_code=zipCode)
+            zip_code=zipCode, currently_present=userHome)
 
 
 # Subscribe to motion and temp events
