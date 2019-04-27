@@ -108,6 +108,7 @@ def is_user_home():
 
 # Callback for a sensor value change
 def event_callback(data):
+
     # New Data has been published
     payload = json.loads(data.payload)
     global movement
@@ -117,11 +118,13 @@ def event_callback(data):
     movement = payload["movement"]
     # print(movement)
 
-    outsideTemp = int(payload["temperature"])
-    update_lists(outside_temp_list, outsideTemp, temp_counter)
-    decide()
-    temp_counter += 1
+    if float(payload["temperature"]) != outsideTemp:
+        update_lists(outside_temp_list, outsideTemp, temp_counter)
+        outsideTemp = float(payload["temperature"])
+        decide()
+        temp_counter += 1
 
+   
 # Decide whether to turn heat or AC on
 def decide():
     desiredCool = 0
@@ -223,7 +226,7 @@ def schedule_app_run():
         if running:
             # Check the user's schedule every 15 minutes
             # Returns True if the user has something scheduled at this time
-            scheduledHome = calendar.check_user_event(event_list, datetime.now())
+            scheduledHome = not calendar.check_user_event(event_list, datetime.now())
             print(scheduledHome)
             time.sleep(5)
     
