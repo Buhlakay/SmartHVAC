@@ -54,11 +54,14 @@ r = requests.get(URL + str(latitude) + "," + str(longitude))
 data = r.json()
 lastTemp = data['currently']['temperature']
 print(lastTemp)
+dummyTemps = [65, 65, 67, 68, 69, 69, 71, 72, 74, 75, 77, 78, 80, 81, 81, 81, 78, 75, 74, 71]
+dummyMotion = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+'''
 while 1:
     location = search.by_zipcode(zip)
     latitude = location.to_dict()['lat']
     longitude = location.to_dict()['lng']
-    if count == 30:
+    if count == 15:
         r = requests.get(URL + str(latitude) + "," + str(longitude))
         print("api call")
         data = r.json()
@@ -84,4 +87,10 @@ while 1:
     client.publishEvent("RaspberryPi","b827ebe4ecec","sensorData","json",myData)
     count += 1
     time.sleep(1)
+'''
+for x in range(20):
+    myData = {'movement' : dummyMotion[x], 'temperature' : dummyTemps[x]}
+    client.publishEvent("RaspberryPi","b827ebe4ecec","sensorData","json",myData)
+    time.sleep(5)
+
 
