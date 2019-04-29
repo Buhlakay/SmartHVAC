@@ -62,10 +62,10 @@ decision = 'Turn unit off'
 app = Flask(__name__)
 port = os.getenv('VCAP_APP_PORT', '5000')
 
+event_list = calendar.get_event_list()
 
 # Connect to IBM cloud instance
 client = None
-
 
 # Connection data for IBM Cloud
 try:
@@ -114,12 +114,15 @@ def event_callback(data):
     global movement
     global outsideTemp
     global temp_counter
+    global scheduledHome
 
-    movement = payload["movement"]
-    # print(movement)
+    movement = int(payload["movement"])
+    print(movement)
 
     if float(payload["temperature"]) != outsideTemp:
         update_lists(outside_temp_list, outsideTemp, temp_counter)
+        scheduledHome = not calendar.check_user_event(event_list, datetime.now())
+        
         outsideTemp = float(payload["temperature"])
         decide()
         temp_counter += 1
@@ -179,10 +182,10 @@ def get_zip_code():
 
     if request.method == 'POST':
         zipCode = request.form['zip'] if request.form['zip'] != '' else zipCode
-        awayHeat = request.form['awayHeat'] if request.form['awayHeat'] != '' else awayHeat
-        homeHeat = request.form['homeHeat'] if request.form['homeHeat'] != '' else homeHeat
-        awayCool = request.form['awayCool'] if request.form['awayCool'] != '' else awayCool
-        homeCool = request.form['homeCool'] if request.form['homeCool'] != '' else homeCool
+        awayHeat = int(request.form['awayHeat']) if request.form['awayHeat'] != '' else awayHeat
+        homeHeat = int(request.form['homeHeat']) if request.form['homeHeat'] != '' else homeHeat
+        awayCool = int(request.form['awayCool']) if request.form['awayCool'] != '' else awayCool
+        homeCool = int(request.form['homeCool']) if request.form['homeCool'] != '' else homeCool
 
         my_data = {'zip': str(zipCode)}
         client.publishEvent("Laptop", "7", "zipcode", "json", my_data)
@@ -217,23 +220,19 @@ def temp_controller():
 client.subscribeToDeviceEvents(event="sensorData")
 client.deviceEventCallback = event_callback
 
-event_list = calendar.get_event_list()
-
 
 def schedule_app_run():
-    global scheduledHome
     while True:
         if running:
             # Check the user's schedule every 15 minutes
             # Returns True if the user has something scheduled at this time
-            scheduledHome = not calendar.check_user_event(event_list, datetime.now())
             print(scheduledHome)
             time.sleep(5)
     
 
 if __name__ == "__main__":
     # threading.Thread(target=signal_event).start()
-    threading.Thread(target=schedule_app_run).start()
+    # threading.Thread(target=schedule_app_run).start()
     app.run(host='0.0.0.0', port=int(port))
     
     

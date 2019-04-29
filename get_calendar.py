@@ -39,10 +39,10 @@ def get_event_list():
     # Call the Calendar API
     # now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
 
-    before = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 14, 0, 0).strftime('%s')))
+    before = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 28, 0, 0).strftime('%s')))
     before_timestamp = before.isoformat('T') + 'Z'
 
-    after = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 4, 20, 23, 59).strftime('%s')))
+    after = datetime.datetime.utcfromtimestamp(float(datetime.datetime(2019, 5, 4, 23, 59).strftime('%s')))
     after_timestamp = after.isoformat('T') + 'Z'
 
     print('Getting events for the upcoming week')
