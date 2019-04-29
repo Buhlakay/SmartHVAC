@@ -61,7 +61,7 @@ while 1:
     location = search.by_zipcode(zip)
     latitude = location.to_dict()['lat']
     longitude = location.to_dict()['lng']
-    if count == 15:
+    if count == 5:
         r = requests.get(URL + str(latitude) + "," + str(longitude))
         print("api call")
         data = r.json()
